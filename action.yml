@@ -1,0 +1,75 @@
+name: CI Failure Triage
+description: >-
+  Diagnoses a failed GitHub Actions run (real failure, flaky test, infra, or dependency/environment) from
+  its logs and posts the diagnosis, with evidence and a next step, to Slack. Read-only.
+author: ron1120
+branding:
+  icon: search
+  color: orange
+
+inputs:
+  github-token:
+    description: Token that can read Actions runs and logs in the repository being triaged (permission `actions - read`). Usually secrets.GITHUB_TOKEN.
+    required: true
+  slack-webhook-url:
+    description: Slack incoming-webhook URL to post the diagnosis to. The step fails if this is empty.
+    required: true
+  anthropic-api-key:
+    description: Anthropic API key. Without it, only failures that the built-in rules recognise get a diagnosis; the rest are posted as "needs human review".
+    required: false
+    default: ""
+  run-id:
+    description: ID of the failed run to diagnose. Defaults to the run that triggered this workflow_run.
+    required: false
+    default: ${{ github.event.workflow_run.id }}
+  repo:
+    description: The repository the run belongs to, as owner/name.
+    required: false
+    default: ${{ github.repository }}
+  mode:
+    description: "hybrid (rules first, then the model), rules (never call the model) or llm (always call the model)."
+    required: false
+    default: hybrid
+  model:
+    description: Claude model to use. Empty means the agent's default.
+    required: false
+    default: ""
+  effort:
+    description: Model effort level (low, medium, high). Empty means the agent's default.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install the agent
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: python -m pip install --quiet -r "$ACTION_PATH/requirements.txt"
+
+    - name: Diagnose the failed run and post the result
+      shell: bash
+      env:
+        PYTHONPATH: ${{ github.action_path }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
+        TRIAGE_MODEL: ${{ inputs.model }}
+        TRIAGE_EFFORT: ${{ inputs.effort }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_RUN_ID: ${{ inputs.run-id }}
+        INPUT_MODE: ${{ inputs.mode }}
+      run: python -m triage notify --repo "$INPUT_REPO" --run-id "$INPUT_RUN_ID" --mode "$INPUT_MODE" --out "$RUNNER_TEMP/diagnosis.json"
+
+    - name: Save the diagnosis record
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: diagnosis-${{ inputs.run-id }}
+        path: ${{ runner.temp }}/diagnosis.json
+        if-no-files-found: warn

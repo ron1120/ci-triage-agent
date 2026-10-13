@@ -117,12 +117,12 @@ def classify(
 
     client = client or anthropic.Anthropic()
     request = dict(
-        model=model or os.environ.get("TRIAGE_MODEL", DEFAULT_MODEL),
+        model=model or os.environ.get("TRIAGE_MODEL") or DEFAULT_MODEL,
         max_tokens=8000,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": build_user_message(meta, excerpt, hint)}],
         output_config={
-            "effort": effort or os.environ.get("TRIAGE_EFFORT", DEFAULT_EFFORT),
+            "effort": effort or os.environ.get("TRIAGE_EFFORT") or DEFAULT_EFFORT,
             "format": {"type": "json_schema", "schema": SCHEMA},
         },
     )

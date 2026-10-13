@@ -76,15 +76,6 @@ def test_triage_workflow_watches_ci_and_only_reacts_to_failures():
     assert workflow["permissions"] == {"actions": "read", "contents": "read"}
 
 
-def test_triage_workflow_saves_the_diagnosis_record_even_on_failure():
-    steps = load("triage.yml")["jobs"]["triage"]["steps"]
-    diagnose = next(s for s in steps if "triage notify" in s.get("run", ""))
-    assert "--out diagnosis.json" in diagnose["run"]
-    upload = next(s for s in steps if str(s.get("uses", "")).startswith("actions/upload-artifact"))
-    assert upload["if"] == "always()" and upload["with"]["path"] == "diagnosis.json"
-    assert steps.index(upload) > steps.index(diagnose)
-
-
 def test_triage_workflow_never_checks_out_the_failed_runs_code():
     text = (WORKFLOWS / "triage.yml").read_text()
     assert "head_sha" not in text and "head_branch" not in text and "pull_request" not in text

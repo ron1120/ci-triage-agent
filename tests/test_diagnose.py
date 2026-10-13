@@ -69,6 +69,21 @@ def test_rules_mode_abstains_without_a_match(fake):
     assert d.category == NEEDS_REVIEW and fake.calls == []
 
 
+def test_blank_model_and_effort_settings_fall_back_to_the_defaults(fake, monkeypatch):
+    # The GitHub Action passes unset inputs as empty strings.
+    monkeypatch.setenv("TRIAGE_MODEL", "")
+    monkeypatch.setenv("TRIAGE_EFFORT", "")
+    diagnose_text(ASSERTION_LOG, client=fake)
+    assert fake.calls[0]["model"] == llm.DEFAULT_MODEL
+    assert fake.calls[0]["output_config"]["effort"] == llm.DEFAULT_EFFORT
+
+
+def test_model_setting_overrides_the_default(fake, monkeypatch):
+    monkeypatch.setenv("TRIAGE_MODEL", "claude-opus-5-5")
+    diagnose_text(ASSERTION_LOG, client=fake)
+    assert fake.calls[0]["model"] == "claude-opus-5-5"
+
+
 def test_fallbacks_can_be_disabled(fake, monkeypatch):
     monkeypatch.setenv("TRIAGE_FALLBACKS", "0")
     diagnose_text(ASSERTION_LOG, client=fake)

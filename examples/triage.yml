@@ -1,0 +1,22 @@
+# .github/workflows/triage.yml in the repository whose pipeline you want triaged.
+name: Triage failed CI
+
+on:
+  workflow_run:
+    workflows: ["CI"]            # the exact `name:` of your pipeline's workflow (a list works too)
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  triage:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ron1120/ci-triage-agent@main   # pin a commit SHA once you depend on it
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}

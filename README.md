@@ -49,7 +49,7 @@ jobs:
     if: github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     steps:
-      - uses: ron1120/ci-triage-agent@main   # pin a commit SHA once you depend on it
+      - uses: rronss/ci-triage-agent@main   # pin a commit SHA once you depend on it
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -151,7 +151,7 @@ the structure and safety properties of the workflows and the action.
 - **Accuracy on real failures.** The sandbox failures are planted and repeated, so 12 of 12 shows the system
   works, not how well it does on messy production failures. That needs a labelled set of real failed runs.
 - **Use from a second repository.** The action is exercised by this repository's own triage workflow
-  (`uses: ./`); the cross-repository form (`uses: ron1120/ci-triage-agent@main`) is the same code but has not
+  (`uses: ./`); the cross-repository form (`uses: rronss/ci-triage-agent@main`) is the same code but has not
   yet been run from another repository.
 - **Learning from the engineer.** Verdicts are not recorded, so the agent doesn't improve from use.
 

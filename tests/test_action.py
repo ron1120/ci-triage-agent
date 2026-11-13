@@ -66,7 +66,7 @@ def test_example_for_other_repos_is_valid_and_complete():
     job = workflow["jobs"]["triage"]
     assert job["if"] == "github.event.workflow_run.conclusion == 'failure'"
     step = job["steps"][0]
-    assert re.fullmatch(r"ron1120/ci-triage-agent@\S+", step["uses"])
+    assert re.fullmatch(r"rronss/ci-triage-agent@\S+", step["uses"])
     required = {name for name, spec in ACTION["inputs"].items() if spec["required"]}
     assert required <= set(step["with"])
     assert not any("checkout" in str(s.get("uses", "")) for s in job["steps"])

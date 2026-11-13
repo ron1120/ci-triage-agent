@@ -2,7 +2,7 @@ name: CI Failure Triage
 description: >-
   Diagnoses a failed GitHub Actions run (real failure, flaky test, infra, or dependency/environment) from
   its logs and posts the diagnosis, with evidence and a next step, to Slack. Read-only.
-author: ron1120
+author: rronss
 branding:
   icon: search
   color: orange
